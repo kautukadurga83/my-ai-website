@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mera AI Image Recognizer</title>
+    <style>
+        body {
+            background-color: #1a1a2e;
+            text-align: center;
+            font-family: Arial;
+            color: white;
+        }
+        h1 { color: #e94560; }
+        .box {
+            background-color: #16213e;
+            padding: 30px;
+            margin: 20px auto;
+            width: 500px;
+            border-radius: 15px;
+        }
+        button {
+            background-color: #e94560;
+            color: white;
+            padding: 12px 25px;
+            font-size: 18px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        img {
+            max-width: 300px;
+            border-radius: 10px;
+            margin: 15px;
+        }
+        #result {
+            font-size: 22px;
+            color: #00ff88;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🤖 Mera AI Image Recognizer</h1>
+    <div class="box">
+        <p>Apni photo choose karo:</p>
+        <input type="file" id="photoInput" accept="image/*">
+        <br>
+        <img id="preview" src="" style="display:none">
+        <br>
+        <button onclick="analyzeImage()">🔍 AI Se Pehchano!</button>
+        <p id="result"></p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+    <script>
+        var modelLoaded = false;
+        var model;
+
+        // Model load karo
+        async function loadModel() {
+            document.getElementById('result').innerHTML = "⏳ AI Model load ho raha hai...";
+            model = await mobilenet.load();
+            modelLoaded = true;
+            document.getElementById('result').innerHTML = "✅ AI Ready hai! Photo choose karo!";
+        }
+
+        // Photo preview
+        document.getElementById('photoInput').addEventListener('change', function(e) {
+            var file = e.target.files[0];
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var img = document.getElementById('preview');
+                img.src = e.target.result;
+                img.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        });
+
+        // AI se pehchano
+        async function analyzeImage() {
+            var result = document.getElementById('result');
+
+            if(!modelLoaded) {
+                result.innerHTML = "⏳ Model abhi load ho raha hai...";
+                return;
+            }
+
+            var img = document.getElementById('preview');
+            if(!img.src) {
+                result.innerHTML = "⚠️ Pehle photo choose karo!";
+                return;
+            }
+
+            result.innerHTML = "🤖 AI soch raha hai...";
+
+            var predictions = await model.classify(img);
+
+            var top = predictions[0];
+            result.innerHTML = "✅ AI ne pehchana: <b>" + 
+                top.className + "</b><br>Confidence: " + 
+                (top.probability * 100).toFixed(1) + "%";
+        }
+
+        // Page load hone par model load karo
+        loadModel();
+    </script>
+</body>
+</html>
